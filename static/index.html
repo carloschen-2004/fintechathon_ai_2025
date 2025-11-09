@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>Deep Learning 推荐原型</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header><h1>深度学习推荐系统原型</h1></header>
+  <main>
+    <section class="controls">
+      <label for="user">选择用户ID (0 - 499): </label>
+      <input id="user" type="number" min="0" max="499" value="0"/>
+      <label for="k">Top-K: </label>
+      <input id="k" type="number" min="1" max="20" value="5"/>
+      <button id="btn">获取推荐</button>
+    </section>
+
+    <section id="result">
+      <h2>推荐结果</h2>
+      <div id="rec-list"></div>
+    </section>
+  </main>
+
+  <script src="main.js"></script>
+</body>
+</html>
