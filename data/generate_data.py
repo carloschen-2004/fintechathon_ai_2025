@@ -9,9 +9,9 @@ os.makedirs(os.path.dirname(__file__), exist_ok=True)
 np.random.seed(42)
 
 # 参数 - 增加样本量
-N_CLIENTS = 200000  # 客户数
+N_CLIENTS = 10000  # 客户数
 N_STOCKS = 1000   # 股票数量
-TRANSACTIONS = 5000000  # 交易数据量
+TRANSACTIONS = 500000  # 交易数据量
 
 # 行业类别
 INDUSTRIES = [

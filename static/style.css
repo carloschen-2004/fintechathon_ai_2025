@@ -162,11 +162,76 @@ button:active {
   cursor: pointer;
   border-left: 4px solid #1f6feb;
   background: linear-gradient(135deg, #f0f6ff 0%, #e0ecff 100%);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .stock-card:hover {
   border-left-color: #0d47a1;
   background: linear-gradient(135deg, #e0ecff 0%, #c3d9ff 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stock-card.selected {
+  border-left-color: #764ba2;
+  background: linear-gradient(135deg, #faf5ff 0%, #e9d5ff 100%);
+  box-shadow: 0 6px 16px rgba(118, 75, 162, 0.2);
+}
+
+/* 排名徽章 */
+.rank-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 1;
+}
+
+/* 相似度徽章 */
+.similarity-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 1;
+}
+
+/* 股票动作提示 */
+.stock-actions {
+  text-align: center;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  color: #1f6feb;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stock-card:hover .stock-actions {
+  opacity: 1;
+}
+
+/* 悬停效果 */
+.hoverable {
+  transition: all 0.3s ease;
+}
+
+.hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .stock-header {
@@ -208,6 +273,237 @@ button:active {
 #explanation {
   border-left: 4px solid #764ba2;
   background: #faf5ff;
+}
+
+/* 模态框样式 */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: slideIn 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6c757d;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-modal:hover {
+  background: #f8f9fa;
+  color: #333;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 风险偏好可视化 */
+.risk-visualization {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.risk-bar {
+  display: flex;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.risk-segment {
+  height: 100%;
+  transition: width 0.6s ease;
+}
+
+/* 相似度可视化 */
+.similarity-container {
+  margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.similarity-item {
+  flex: 1;
+  min-width: 150px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.similarity-label {
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 6px;
+}
+
+.similarity-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f6feb;
+}
+
+.similarity-bar {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.similarity-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1f6feb, #764ba2);
+  transition: width 0.6s ease;
+}
+
+/* 股票推荐列表容器 */
+.stock-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* 加载状态动画 */
+.loading-dots::after {
+  content: '';
+  animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: ''; }
+  40% { content: '.'; }
+  60% { content: '..'; }
+  80%, 100% { content: '...'; }
+}
+
+/* 平滑过渡效果 */
+.smooth-transition {
+  transition: all 0.3s ease;
+}
+
+/* 数据可视化区域 */
+.visualization-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 详情标签页 */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.tab-button.active {
+  color: #1f6feb;
+  border-bottom: 2px solid #1f6feb;
+}
+
+.tab-content {
+  display: none;
+  padding: 10px 0;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
 }
 
 /* 错误和状态提示 */

@@ -107,8 +107,19 @@ except Exception as e:
 model.to(device)
 model.eval()
 
-# 初始化新功能组件
+# 初始化并拟合客户分群模型
 client_segmenter = ClientSegmentation()
+
+# 创建足够的示例数据用于拟合模型（至少5个样本以满足KMeans聚类需求）
+sample_client_data = pd.DataFrame({
+    'age': [25, 30, 40, 50, 35, 45, 55],
+    'risk_pref': [0.2, 0.3, 0.7, 0.5, 0.6, 0.8, 0.4],
+    'capital_tier': [1, 1, 3, 2, 2, 3, 2],
+    'experience_years': [1, 2, 8, 5, 4, 10, 7]
+})
+
+# 拟合模型
+client_segmenter.fit(sample_client_data)
 stock_extractor = StockFeatureExtractor()
 
 # 尝试初始化推荐引擎
@@ -176,12 +187,14 @@ def segment_client():
         client_df = pd.DataFrame([client_data])
         
         # 预测客户等级
-        level = client_segmenter.predict_level(client_df)[0]
+        result_df = client_segmenter.predict(client_df)
+        # 确保level是Python原生int类型，避免numpy.int32序列化问题
+        level = int(result_df['client_level'].iloc[0])
         level_names = ['保守型', '稳健型', '平衡型', '成长型', '进取型']
         level_name = level_names[level]
         
         # 获取投资建议
-        advice = client_segmenter.get_investment_advice(level)
+        advice = client_segmenter.get_client_profile(level)
         
         return jsonify({
             'level': level,
@@ -215,7 +228,9 @@ def recommend_stocks():
         
         # 简化推荐逻辑
         client_df = pd.DataFrame([client_data])
-        level = client_segmenter.predict_level(client_df)[0]
+        result_df = client_segmenter.predict(client_df)
+        # 确保level是Python原生int类型，避免numpy.int32序列化问题
+        level = int(result_df['client_level'].iloc[0])
         
         # 基于规则的简单推荐
         recommendations = []
@@ -293,6 +308,169 @@ def recommend():
         "topk": topk,
         "recommendations": explanations
     })
+
+# 获取股票推荐解释
+@app.route('/stock/explanation', methods=['POST'])
+def get_stock_explanation():
+    """
+    获取指定股票的推荐解释
+    """
+    try:
+        data = request.json
+        stock_id = data.get('stock_id')
+        
+        if not stock_id:
+            return jsonify({'error': 'Missing stock_id'}), 400
+        
+        # 查找股票信息
+        stock_row = None
+        if 'stock_id' in items.columns:
+            stock_row = items[items['stock_id'] == stock_id].iloc[0] if not items[items['stock_id'] == stock_id].empty else None
+        elif 'item_id' in items.columns:
+            stock_row = items[items['item_id'] == stock_id].iloc[0] if not items[items['item_id'] == stock_id].empty else None
+        
+        if not stock_row.any():
+            return jsonify({'error': 'Stock not found'}), 404
+        
+        # 生成解释
+        risk_level = stock_row.get('risk_level', 3)
+        expected_return = stock_row.get('expected_return', 0.05)
+        volatility = stock_row.get('volatility', 0.1)
+        industry = stock_row.get('industry', '未知行业')
+        
+        # 基于股票特征生成推荐原因
+        reasons = []
+        if expected_return > 0.06:
+            reasons.append("预期收益较高，具有良好的投资回报潜力")
+        if volatility < 0.15:
+            reasons.append("波动率相对较低，风险控制较好")
+        if risk_level <= 3:
+            reasons.append("风险评级适中，适合大多数投资者")
+        
+        if not reasons:
+            reasons.append("综合表现稳定，具有投资价值")
+        
+        # 风险匹配分析
+        risk_matching = f"风险等级为{risk_level}/5，与{'保守型和稳健型' if risk_level <= 2 else '平衡型和成长型' if risk_level <= 4 else '进取型'}客户匹配度较高"
+        
+        # 预期收益分析
+        return_analysis = f"预期年化收益率为{expected_return*100:.2f}%，处于{'' if expected_return > 0.08 else '较高' if expected_return > 0.06 else '中等' if expected_return > 0.04 else '较低'}水平"
+        
+        # 适合客户特点
+        client_fit = f"适合追求{'' if expected_return > 0.08 else '较高' if expected_return > 0.06 else '稳定' if volatility < 0.1 else '平衡'}投资回报的客户"
+        
+        # 注意事项
+        cautions = "投资有风险，请根据自身风险承受能力谨慎决策"
+        if volatility > 0.2:
+            cautions += "。该股票波动性较大，请关注市场变化"
+        
+        return jsonify({
+            'stock_id': int(stock_id),
+            'stock_name': stock_row.get('stock_name', f'股票{stock_id}'),
+            'ticker': stock_row.get('ticker', f'STOCK{stock_id}'),
+            'industry': industry,
+            'reason': '；'.join(reasons),
+            'risk_matching': risk_matching,
+            'return_analysis': return_analysis,
+            'client_fit': client_fit,
+            'cautions': cautions
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# 基于点击的相似股票推荐
+@app.route('/stock/similar', methods=['POST'])
+def get_similar_stocks():
+    """
+    根据用户点击的股票，推荐相似的股票
+    """
+    try:
+        data = request.json
+        stock_id = data.get('stock_id')
+        top_k = data.get('top_k', 3)
+        
+        if not stock_id:
+            return jsonify({'error': 'Missing stock_id'}), 400
+        
+        # 查找当前股票信息
+        stock_row = None
+        if 'stock_id' in items.columns:
+            stock_row = items[items['stock_id'] == stock_id].iloc[0] if not items[items['stock_id'] == stock_id].empty else None
+        elif 'item_id' in items.columns:
+            stock_row = items[items['item_id'] == stock_id].iloc[0] if not items[items['item_id'] == stock_id].empty else None
+        
+        if not stock_row.any():
+            return jsonify({'error': 'Stock not found'}), 404
+        
+        # 计算其他股票与当前股票的相似度
+        similar_stocks = []
+        
+        # 使用行业、风险等级、预期收益等特征计算相似度
+        target_industry = stock_row.get('industry', '')
+        target_risk = stock_row.get('risk_level', 3)
+        target_return = stock_row.get('expected_return', 0.05)
+        target_volatility = stock_row.get('volatility', 0.1)
+        
+        # 遍历所有股票计算相似度
+        for _, row in items.iterrows():
+            # 跳过当前股票
+            if ('stock_id' in row and row['stock_id'] == stock_id) or ('item_id' in row and row['item_id'] == stock_id):
+                continue
+            
+            # 计算相似度分数
+            similarity = 0.0
+            
+            # 行业匹配 (0.3权重)
+            if row.get('industry', '') == target_industry:
+                similarity += 0.3
+            
+            # 风险等级相似度 (0.3权重)
+            risk_diff = abs(row.get('risk_level', 3) - target_risk)
+            similarity += (1 - risk_diff/4) * 0.3  # 风险等级差距越小，相似度越高
+            
+            # 预期收益相似度 (0.2权重)
+            return_diff = abs(row.get('expected_return', 0.05) - target_return)
+            similarity += (1 - min(return_diff/0.2, 1)) * 0.2  # 收益差距越小，相似度越高
+            
+            # 波动率相似度 (0.2权重)
+            vol_diff = abs(row.get('volatility', 0.1) - target_volatility)
+            similarity += (1 - min(vol_diff/0.4, 1)) * 0.2  # 波动率差距越小，相似度越高
+            
+            # 存储相似度分数和股票信息
+            similar_stocks.append({
+                'stock_id': row.get('stock_id', row.get('item_id')),
+                'similarity': similarity,
+                'stock_info': row.to_dict()
+            })
+        
+        # 按相似度排序，取前k个
+        similar_stocks.sort(key=lambda x: x['similarity'], reverse=True)
+        top_similar = similar_stocks[:top_k]
+        
+        # 格式化返回结果
+        formatted_results = []
+        for stock in top_similar:
+            stock_info = stock['stock_info']
+            formatted_results.append({
+                'stock_id': stock['stock_id'],
+                'stock_name': stock_info.get('stock_name', f'股票{stock["stock_id"]}'),
+                'ticker': stock_info.get('ticker', f'STOCK{stock["stock_id"]}'),
+                'industry': stock_info.get('industry', '未知行业'),
+                'risk_level': stock_info.get('risk_level', 3),
+                'expected_return': stock_info.get('expected_return', 0.05),
+                'volatility': stock_info.get('volatility', 0.1),
+                'similarity': round(stock['similarity'] * 100, 2)  # 转换为百分比
+            })
+        
+        return jsonify({
+            'target_stock_id': stock_id,
+            'similar_stocks': formatted_results,
+            'total_found': len(formatted_results)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # 创建模板目录和简单的首页模板
 if not os.path.exists('templates'):

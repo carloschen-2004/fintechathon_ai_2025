@@ -43,6 +43,8 @@
 
 ## 运行指南
 
+（本人是mac系统，所以使用的是python3）
+
 # 1. 创建并激活虚拟环境（可选）
 
 python3 -m venv venv
@@ -64,10 +66,14 @@ python3 train_model.py
 
 # 5. 启动后端
 
-python app.py
+python3 app.py
 
 # 6. 在浏览器打开
 
-# 访问 http://127.0.0.1:5000/
+访问 http://127.0.0.1:5000/
 
-# 前端页面在 static/index.html，会通过 /recommend 接口获取 Top-K 推荐
+# 7.测试文件
+
+test_app.ipynb 测试系统的推荐结果
+
+### 前端页面在 static/index.html，会通过 /recommend 接口获取 Top-K 推荐

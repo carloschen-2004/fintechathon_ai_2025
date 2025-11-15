@@ -198,7 +198,7 @@ def train_model(clients, stocks, transactions, client_feats_scaled, stock_feats_
     loss_fn = ClientLevelAwareLoss()
     
     # 训练配置
-    num_epochs = 50
+    num_epochs = 10
     patience = 8
     best_val_loss = float('inf')
     counter = 0
