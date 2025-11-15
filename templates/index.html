@@ -1,0 +1,58 @@
+
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>客户分级导向的量化选股系统</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background-color: white;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            h1 { color: #333; text-align: center; }
+            h2 { color: #555; margin-top: 30px; }
+            .api-section { margin-bottom: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 6px; }
+            code { background-color: #eee; padding: 2px 5px; border-radius: 3px; }
+            pre { background-color: #f4f4f4; padding: 15px; border-radius: 6px; overflow-x: auto; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>客户分级导向的量化选股系统 API</h1>
+            
+            <div class="api-section">
+                <h2>1. 客户分级</h2>
+                <p><strong>URL:</strong> <code>/client/segment</code></p>
+                <p><strong>方法:</strong> POST</p>
+                <p><strong>请求体示例:</strong></p>
+                <pre>{"age": 35, "risk_pref": 0.7, "capital_tier": 4}</pre>
+            </div>
+            
+            <div class="api-section">
+                <h2>2. 股票推荐</h2>
+                <p><strong>URL:</strong> <code>/stock/recommend</code></p>
+                <p><strong>方法:</strong> POST</p>
+                <p><strong>请求体示例:</strong></p>
+                <pre>{"client_data": {"age": 35, "risk_pref": 0.7, "capital_tier": 4}, "top_k": 5}</pre>
+            </div>
+            
+            <div class="api-section">
+                <h2>3. 原始推荐API</h2>
+                <p><strong>URL:</strong> <code>/recommend</code></p>
+                <p><strong>方法:</strong> POST</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    

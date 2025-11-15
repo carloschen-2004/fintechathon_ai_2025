@@ -2,23 +2,70 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <title>Deep Learning 推荐原型</title>
+  <title>客户分级导向的量化选股系统</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header><h1>深度学习推荐系统原型</h1></header>
+  <header><h1>客户分级导向的量化选股系统</h1></header>
   <main>
-    <section class="controls">
-      <label for="user">选择用户ID (0 - 499): </label>
-      <input id="user" type="number" min="0" max="499" value="0"/>
-      <label for="k">Top-K: </label>
-      <input id="k" type="number" min="1" max="20" value="5"/>
-      <button id="btn">获取推荐</button>
+    <!-- 客户信息输入区域 -->
+    <section class="client-info">
+      <h2>客户信息</h2>
+      <div class="form-group">
+        <label for="age">年龄: </label>
+        <input id="age" type="number" min="18" max="100" value="35"/>
+      </div>
+      <div class="form-group">
+        <label for="risk_pref">风险偏好 (0-1): </label>
+        <input id="risk_pref" type="number" min="0" max="1" step="0.1" value="0.5"/>
+      </div>
+      <div class="form-group">
+        <label for="capital_tier">资金等级 (1-5): </label>
+        <input id="capital_tier" type="number" min="1" max="5" value="3"/>
+      </div>
+      <div class="form-group">
+        <label for="investment_experience">投资经验 (年): </label>
+        <input id="investment_experience" type="number" min="0" max="30" value="5"/>
+      </div>
+      <div class="controls">
+        <label for="top_k">推荐数量: </label>
+        <input id="top_k" type="number" min="1" max="20" value="5"/>
+        <button id="analyze-btn">分析客户</button>
+        <button id="recommend-btn">获取推荐</button>
+      </div>
     </section>
 
-    <section id="result">
-      <h2>推荐结果</h2>
-      <div id="rec-list"></div>
+    <!-- 客户分级结果区域 -->
+    <section id="client-segment" class="result-section">
+      <h2>客户分级结果</h2>
+      <div id="segment-result" class="card">
+        <p>请点击"分析客户"按钮查看分级结果</p>
+      </div>
+    </section>
+
+    <!-- 股票推荐结果区域 -->
+    <section id="stock-results" class="result-section">
+      <h2>股票推荐结果</h2>
+      <div id="recommendations"></div>
+    </section>
+
+    <!-- 推荐解释区域 -->
+    <section id="explanation-section" class="result-section">
+      <h2>推荐解释</h2>
+      <div id="explanation" class="card">
+        <p>选择一支股票查看详细推荐解释</p>
+      </div>
+    </section>
+
+    <!-- 原始推荐系统入口 (兼容模式) -->
+    <section class="legacy-section">
+      <h3>原始推荐系统</h3>
+      <div class="legacy-controls">
+        <label for="legacy-user">选择用户ID (0 - 499): </label>
+        <input id="legacy-user" type="number" min="0" max="499" value="0"/>
+        <button id="legacy-btn">获取原始推荐</button>
+      </div>
+      <div id="legacy-results"></div>
     </section>
   </main>
 
